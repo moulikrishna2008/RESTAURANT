@@ -508,7 +508,7 @@
         <textarea placeholder="Dietary restrictions, seating preferences, accessibility needs…"></textarea>
       </div>
     </div>
-    <button class="btn-gold form-submit" onclick="sendData()">Confirm Reservation</button>
+<button class="btn-gold form-submit" onclick="bookNow()">Confirm Reservation</button>
   </div>
 </section>
 
@@ -641,6 +641,9 @@
   })
   .then(res => res.text())
   .then(msg => alert(msg));
+}
+  function bookNow() {
+  alert("Booking Successful 🎉");
 }
 </script>
 </body>
