@@ -508,7 +508,7 @@
         <textarea placeholder="Dietary restrictions, seating preferences, accessibility needs…"></textarea>
       </div>
     </div>
-    <button class="btn-gold form-submit">Confirm Reservation</button>
+    <button class="btn-gold form-submit" onclick="sendData()">Confirm Reservation</button>
   </div>
 </section>
 
@@ -620,6 +620,28 @@
   // SCROLL REVEAL
   const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1});
   document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+  function sendData() {
+
+  const inputs = document.querySelectorAll('#reservation input, #reservation select');
+
+  const data = {
+    name: inputs[0].value,
+    email: inputs[2].value,
+    phone: inputs[3].value,
+    date: inputs[4].value,
+    time: inputs[5].value
+  };
+
+  fetch('http://localhost:5000/book', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.text())
+  .then(msg => alert(msg));
+}
 </script>
 </body>
 </html>
