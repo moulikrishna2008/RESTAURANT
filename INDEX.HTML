@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ember & Oak — Fine Dining</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#0e0b07; --bg2:#161009; --surface:#1c1408;
+      --gold:#c9913a; --gold-lt:#e8b96a; --cream:#f2e8d5;
+      --muted:#8a7a62; --border:rgba(201,145,58,0.18);
+      --ff-head:'Cormorant Garamond',serif; --ff-body:'Jost',sans-serif; --radius:6px;
+    }
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--cream);font-family:var(--ff-body);font-weight:300;overflow-x:hidden;}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 4rem;background:rgba(14,11,7,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:var(--ff-head);font-size:1.6rem;font-weight:600;letter-spacing:.04em;color:var(--gold);text-decoration:none;}
+    .nav-logo span{color:var(--cream);}
+    nav ul{list-style:none;display:flex;gap:2.4rem;}
+    nav ul a{text-decoration:none;color:var(--muted);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;font-weight:500;transition:color .2s;}
+    nav ul a:hover{color:var(--gold);}
+    .nav-reserve{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.55rem 1.4rem;font-family:var(--ff-body);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;cursor:pointer;border-radius:var(--radius);transition:all .2s;text-decoration:none;}
+    .nav-reserve:hover{background:var(--gold);color:var(--bg);}
+
+    /* HERO */
+    #hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .slides{position:absolute;inset:0;}
+    .slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.2s ease;}
+    .slide.active{opacity:1;}
+    .slide::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(14,11,7,.38) 0%,rgba(14,11,7,.80) 100%);}
+    .slide-1{background-image:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1800&q=85');}
+    .slide-2{background-image:url('https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=1800&q=85');}
+    .slide-3{background-image:url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1800&q=85');}
+    .hero-content{position:relative;z-index:2;text-align:center;padding:2rem;}
+    .hero-badge{display:inline-block;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1.4rem;animation:fadeDown .8s ease both;}
+    .hero-badge::before,.hero-badge::after{content:'—';margin:0 .6rem;opacity:.6;}
+    .hero-title{font-family:var(--ff-head);font-size:clamp(3.5rem,8vw,7rem);font-weight:300;line-height:1;letter-spacing:.02em;margin-bottom:1rem;animation:fadeDown .9s .1s ease both;}
+    .hero-title em{font-style:italic;color:var(--gold);}
+    .hero-sub{font-size:1rem;color:rgba(242,232,213,.65);letter-spacing:.06em;margin-bottom:2.5rem;animation:fadeDown .9s .2s ease both;}
+    .hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;animation:fadeDown .9s .3s ease both;}
+    .btn-gold{background:var(--gold);color:var(--bg);padding:.85rem 2.2rem;border:none;cursor:pointer;font-family:var(--ff-body);font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;border-radius:var(--radius);text-decoration:none;transition:all .2s;}
+    .btn-gold:hover{background:var(--gold-lt);transform:translateY(-2px);}
+    .btn-ghost{background:transparent;color:var(--cream);padding:.85rem 2.2rem;border:1px solid rgba(242,232,213,.4);cursor:pointer;font-family:var(--ff-body);font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;border-radius:var(--radius);text-decoration:none;transition:all .2s;}
+    .btn-ghost:hover{border-color:var(--cream);background:rgba(242,232,213,.08);}
+    .slide-dots{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:.6rem;z-index:10;}
+    .dot{width:6px;height:6px;border-radius:50%;background:rgba(242,232,213,.35);cursor:pointer;transition:all .3s;border:none;}
+    .dot.active{background:var(--gold);transform:scale(1.4);}
+
+    /* SECTION COMMONS */
+    section{padding:6rem 2rem;}
+    .section-header{text-align:center;margin-bottom:3.5rem;}
+    .section-tag{display:inline-block;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;}
+    .section-tag::before,.section-tag::after{content:'·';margin:0 .5rem;}
+    h2{font-family:var(--ff-head);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:300;line-height:1.15;}
+    h2 em{font-style:italic;color:var(--gold);}
+    .divider{width:50px;height:1px;background:var(--gold);margin:1.2rem auto 0;opacity:.6;}
+
+    /* SPECIALS STRIP */
+    .specials-strip{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;justify-content:center;flex-wrap:wrap;}
+    .special-item{flex:1;min-width:200px;display:flex;align-items:center;gap:1rem;padding:1.6rem 2rem;border-right:1px solid var(--border);}
+    .special-item:last-child{border-right:none;}
+    .special-icon{font-size:1.8rem;}
+    .special-item h4{font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.2rem;}
+    .special-item p{font-size:.8rem;color:var(--muted);}
+
+    /* MENU */
+    #menu{background:var(--bg2);}
+    .menu-tabs{display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap;margin-bottom:3rem;}
+    .tab-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.6rem 1.6rem;font-family:var(--ff-body);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;cursor:pointer;border-radius:30px;transition:all .2s;}
+    .tab-btn.active,.tab-btn:hover{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+    .menu-grid{display:none;max-width:1100px;margin:0 auto;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem;}
+    .menu-grid.active{display:grid;}
+    .menu-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:transform .25s,border-color .25s;}
+    .menu-card:hover{transform:translateY(-5px);border-color:var(--gold);}
+    .menu-card-img{height:215px;overflow:hidden;position:relative;}
+    .menu-card-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s;display:block;}
+    .menu-card:hover .menu-card-img img{transform:scale(1.07);}
+    .menu-card-badge{position:absolute;top:.8rem;right:.8rem;background:var(--gold);color:var(--bg);font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .7rem;border-radius:3px;}
+    .menu-card-body{padding:1.4rem;}
+    .menu-card-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem;}
+    .menu-card-body h3{font-family:var(--ff-head);font-size:1.3rem;font-weight:600;}
+    .price{font-family:var(--ff-head);font-size:1.2rem;color:var(--gold);}
+    .menu-card-body p{font-size:.83rem;color:var(--muted);line-height:1.7;}
+    .menu-tags{display:flex;gap:.4rem;margin-top:.8rem;flex-wrap:wrap;}
+    .mtag{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .65rem;border-radius:2px;border:1px solid var(--border);color:var(--muted);}
+
+    /* GALLERY */
+    #gallery{background:var(--bg);}
+    .gallery-grid{display:grid;max-width:1200px;margin:0 auto;grid-template-columns:repeat(4,1fr);gap:10px;}
+    .gallery-item{overflow:hidden;border-radius:var(--radius);position:relative;cursor:pointer;}
+    .gallery-item:nth-child(1){grid-column:span 2;grid-row:span 2;}
+    .gallery-item:nth-child(5){grid-column:span 2;}
+    .gallery-item img{width:100%;height:100%;object-fit:cover;min-height:200px;transition:transform .5s;display:block;}
+    .gallery-item:hover img{transform:scale(1.06);}
+    .gallery-item::after{content:'';position:absolute;inset:0;background:rgba(14,11,7,0);transition:background .3s;}
+    .gallery-item:hover::after{background:rgba(14,11,7,.28);}
+
+    /* ABOUT */
+    #about{background:var(--bg2);}
+    .about-grid{display:grid;max-width:1100px;margin:0 auto;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
+    .about-img-wrap{position:relative;}
+    .about-img-wrap img{width:100%;border-radius:var(--radius);display:block;aspect-ratio:4/5;object-fit:cover;}
+    .about-badge{position:absolute;bottom:-1.5rem;right:-1.5rem;background:var(--gold);color:var(--bg);width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--ff-head);}
+    .about-badge .yr{font-size:2.2rem;font-weight:700;line-height:1;}
+    .about-badge .since{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;}
+    .about-text .section-header{text-align:left;}
+    .about-text .divider{margin:1.2rem 0 0;}
+    .about-text p{color:var(--muted);line-height:1.9;font-size:.95rem;margin-top:1.4rem;}
+    .about-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2.5rem;border-top:1px solid var(--border);padding-top:2rem;}
+    .stat-num{font-family:var(--ff-head);font-size:2.2rem;color:var(--gold);font-weight:600;line-height:1;}
+    .stat-label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.3rem;}
+
+    /* CHEFS */
+    #chefs{background:var(--bg);}
+    .chefs-grid{display:grid;max-width:1100px;margin:0 auto;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:2rem;}
+    .chef-card{text-align:center;}
+    .chef-img{width:180px;height:180px;border-radius:50%;overflow:hidden;margin:0 auto 1.2rem;border:2px solid var(--border);transition:border-color .3s;}
+    .chef-card:hover .chef-img{border-color:var(--gold);}
+    .chef-img img{width:100%;height:100%;object-fit:cover;}
+    .chef-card h3{font-family:var(--ff-head);font-size:1.5rem;font-weight:600;}
+    .chef-role{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:.3rem 0 .8rem;}
+    .chef-card p{font-size:.83rem;color:var(--muted);line-height:1.7;max-width:240px;margin:0 auto;}
+
+    /* RESERVATION */
+    #reservation{background:var(--surface);}
+    .reserve-wrap{max-width:700px;margin:0 auto;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:3rem;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .form-group{display:flex;flex-direction:column;gap:.5rem;}
+    .form-group.full{grid-column:span 2;}
+    .form-group label{font-size:.73rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+    .form-group input,.form-group select,.form-group textarea{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;color:var(--cream);font-family:var(--ff-body);font-size:.9rem;transition:border-color .2s;}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--gold);}
+    .form-group select option{background:var(--bg2);}
+    .form-group textarea{resize:vertical;min-height:100px;}
+    .form-submit{margin-top:1.5rem;width:100%;padding:1rem;font-size:.85rem;}
+
+    /* TESTIMONIALS */
+    #testimonials{background:var(--bg2);}
+    .testi-grid{display:grid;max-width:1100px;margin:0 auto;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;}
+    .testi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;}
+    .stars{color:var(--gold);font-size:1rem;margin-bottom:1rem;letter-spacing:2px;}
+    .testi-card p{font-family:var(--ff-head);font-style:italic;font-size:1.1rem;line-height:1.7;color:var(--cream);margin-bottom:1.2rem;}
+    .testi-author{display:flex;align-items:center;gap:.8rem;}
+    .testi-avatar{width:44px;height:44px;border-radius:50%;overflow:hidden;border:1px solid var(--border);}
+    .testi-avatar img{width:100%;height:100%;object-fit:cover;}
+    .testi-name{font-size:.85rem;font-weight:500;}
+    .testi-loc{font-size:.72rem;color:var(--muted);}
+
+    /* FOOTER */
+    footer{background:#080604;border-top:1px solid var(--border);padding:4rem 2rem 2rem;}
+    .footer-grid{display:grid;max-width:1100px;margin:0 auto;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;padding-bottom:3rem;border-bottom:1px solid var(--border);}
+    .footer-brand .nav-logo{font-size:1.8rem;display:block;margin-bottom:.8rem;}
+    .footer-brand p{font-size:.85rem;color:var(--muted);line-height:1.8;}
+    .footer-col h4{font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem;}
+    .footer-col ul{list-style:none;}
+    .footer-col ul li{margin-bottom:.6rem;}
+    .footer-col ul a{text-decoration:none;color:var(--muted);font-size:.85rem;transition:color .2s;}
+    .footer-col ul a:hover{color:var(--gold);}
+    .footer-bottom{max-width:1100px;margin:2rem auto 0;display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--muted);flex-wrap:wrap;gap:1rem;}
+
+    /* ANIMATIONS */
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+    .reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+
+    /* RESPONSIVE */
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}nav ul{display:none;}.about-grid{grid-template-columns:1fr;}.about-img-wrap{max-width:420px;margin:0 auto;}.gallery-grid{grid-template-columns:repeat(2,1fr);}.gallery-item:nth-child(1){grid-column:span 2;}.gallery-item:nth-child(5){grid-column:span 2;}.footer-grid{grid-template-columns:1fr 1fr;}}
+    @media(max-width:600px){.form-grid{grid-template-columns:1fr;}.form-group.full{grid-column:span 1;}.gallery-grid{grid-template-columns:1fr;}.gallery-item:nth-child(1),.gallery-item:nth-child(5){grid-column:span 1;}.hero-title{font-size:2.6rem;}.special-item{flex:0 0 100%;border-right:none;border-bottom:1px solid var(--border);}.footer-grid{grid-template-columns:1fr;}.reserve-wrap{padding:1.5rem;}}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Ember <span>&amp; Oak</span></a>
+  <ul>
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#chefs">Chefs</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+  </ul>
+  <a href="#reservation" class="nav-reserve">Reserve a Table</a>
+</nav>
+
+<!-- HERO SLIDER -->
+<section id="hero">
+  <div class="slides">
+    <div class="slide slide-1 active"></div><!-- Luxurious restaurant dining room -->
+    <div class="slide slide-2"></div><!-- Candlelit table setting / open kitchen -->
+    <div class="slide slide-3"></div><!-- Beautifully composed food spread -->
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">Est. 2009 · Fine Dining</div>
+    <h1 class="hero-title">Where Fire Meets <em>Flavour</em></h1>
+    <p class="hero-sub">Wood-fired cuisine &amp; curated wines in the heart of the city</p>
+    <div class="hero-btns">
+      <a href="#menu" class="btn-gold">Explore Menu</a>
+      <a href="#reservation" class="btn-ghost">Book a Table</a>
+    </div>
+  </div>
+  <div class="slide-dots">
+    <button class="dot active" data-i="0"></button>
+    <button class="dot" data-i="1"></button>
+    <button class="dot" data-i="2"></button>
+  </div>
+</section>
+
+<!-- SPECIALS STRIP -->
+<div class="specials-strip reveal">
+  <div class="special-item"><div class="special-icon">🕯️</div><div><h4>Dinner Service</h4><p>Tue – Sun, 6 PM – 11 PM</p></div></div>
+  <div class="special-item"><div class="special-icon">🍷</div><div><h4>Wine Pairing</h4><p>300+ curated selections</p></div></div>
+  <div class="special-item"><div class="special-icon">🔥</div><div><h4>Live Fire Kitchen</h4><p>Open-flame wood-fired</p></div></div>
+  <div class="special-item"><div class="special-icon">🌿</div><div><h4>Farm to Table</h4><p>Locally sourced ingredients</p></div></div>
+</div>
+
+<!-- ══ MENU ══ -->
+<section id="menu">
+  <div class="section-header reveal">
+    <div class="section-tag">Our Offerings</div>
+    <h2>Crafted with <em>Passion</em></h2>
+    <div class="divider"></div>
+  </div>
+  <div class="menu-tabs reveal">
+    <button class="tab-btn active" data-tab="starters">Starters</button>
+    <button class="tab-btn" data-tab="mains">Main Course</button>
+    <button class="tab-btn" data-tab="desserts">Desserts</button>
+    <button class="tab-btn" data-tab="drinks">Drinks</button>
+  </div>
+
+  <!-- STARTERS -->
+  <div class="menu-grid active" id="tab-starters">
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1541014741259-de529411b96a?w=700&q=85" alt="Smoked Burrata — creamy burrata with heirloom tomatoes"/>
+        <span class="menu-card-badge">Chef's Pick</span>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Smoked Burrata</h3><span class="price">$18</span></div>
+        <p>Creamy burrata smoked over applewood, heirloom tomatoes, aged balsamic reduction.</p>
+        <div class="menu-tags"><span class="mtag">Vegetarian</span><span class="mtag">Gluten Free</span></div>
+      </div>
+    </div>
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=700&q=85" alt="Tuna Tartare — yellowfin tuna with avocado"/>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Tuna Tartare</h3><span class="price">$24</span></div>
+        <p>Yellowfin tuna, avocado mousse, sesame oil, crispy wonton chips.</p>
+        <div class="menu-tags"><span class="mtag">Signature</span><span class="mtag">Raw</span></div>
+      </div>
+    </div>
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1547592166-23ac45744acd?w=700&q=85" alt="Truffle Velouté — wild mushroom soup"/>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Truffle Velouté</h3><span class="price">$16</span></div>
+        <p>Silky wild mushroom velouté with black truffle oil and crispy shallots.</p>
+        <div class="menu-tags"><span class="mtag">Vegetarian</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAINS -->
+  <div class="menu-grid" id="tab-mains">
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=85" alt="Wagyu Ribeye — perfectly seared steak"/>
+        <span class="menu-card-badge">Best Seller</span>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Wagyu Ribeye</h3><span class="price">$68</span></div>
+        <p>300g A5 Wagyu, ember-roasted bone marrow butter, crispy pommes dauphine.</p>
+        <div class="menu-tags"><span class="mtag">Signature</span><span class="mtag">Wood-Fired</span></div>
+      </div>
+    </div>
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1519984388953-d2406bc725e1?w=700&q=85" alt="Glazed Salmon — miso-glazed Atlantic salmon"/>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Glazed Salmon</h3><span class="price">$38</span></div>
+        <p>Miso-glazed Atlantic salmon, dashi broth, roasted fennel, micro herbs.</p>
+        <div class="menu-tags"><span class="mtag">Pescatarian</span><span class="mtag">Gluten Free</span></div>
+      </div>
+    </div>
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=700&q=85" alt="Pappardelle — braised short rib pasta"/>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Hand-Cut Pappardelle</h3><span class="price">$32</span></div>
+        <p>48-hour slow-braised short rib ragu, aged Parmigiano, lemon gremolata.</p>
+        <div class="menu-tags"><span class="mtag">Pasta</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESSERTS -->
+  <div class="menu-grid" id="tab-desserts">
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1551024601-bec78aea704b?w=700&q=85" alt="Valrhona Soufflé — warm chocolate soufflé"/>
+        <span class="menu-card-badge">Fan Favourite</span>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Valrhona Soufflé</h3><span class="price">$16</span></div>
+        <p>Warm 70% chocolate soufflé, Madagascan vanilla ice cream, gold leaf.</p>
+        <div class="menu-tags"><span class="mtag">Vegetarian</span></div>
+      </div>
+    </div>
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1488477181946-6428a0291777?w=700&q=85" alt="Citrus Tart — lemon meringue tart"/>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Citrus Tart</h3><span class="price">$13</span></div>
+        <p>Meyer lemon curd, Italian meringue, yuzu gel, candied zest.</p>
+        <div class="menu-tags"><span class="mtag">Vegetarian</span><span class="mtag">Seasonal</span></div>
+      </div>
+    </div>
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=700&q=85" alt="Artisan Ice Creams — three scoops"/>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Artisan Ice Creams</h3><span class="price">$11</span></div>
+        <p>Three scoops of rotating house-made ice cream. Ask your server for today's flavours.</p>
+        <div class="menu-tags"><span class="mtag">Vegetarian</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRINKS -->
+  <div class="menu-grid" id="tab-drinks">
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=700&q=85" alt="Smoked Old Fashioned cocktail"/>
+        <span class="menu-card-badge">House Special</span>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Smoked Old Fashioned</h3><span class="price">$18</span></div>
+        <p>Bourbon, demerara, Angostura, table-side cherrywood smoke infusion.</p>
+        <div class="menu-tags"><span class="mtag">Cocktail</span><span class="mtag">Signature</span></div>
+      </div>
+    </div>
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=700&q=85" alt="Reserve Burgundy red wine glass"/>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Reserve Burgundy</h3><span class="price">$24</span></div>
+        <p>Domaine Drouhin Pinot Noir, Oregon. Cherry, earth, silky tannins.</p>
+        <div class="menu-tags"><span class="mtag">Red Wine</span><span class="mtag">Sommelier's Choice</span></div>
+      </div>
+    </div>
+    <div class="menu-card reveal">
+      <div class="menu-card-img">
+        <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=700&q=85" alt="Garden Spritz — zero proof botanical cocktail"/>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-row"><h3>Garden Spritz</h3><span class="price">$12</span></div>
+        <p>Elderflower, cucumber, fresh mint, yuzu tonic — zero proof elegance.</p>
+        <div class="menu-tags"><span class="mtag">Non-Alcoholic</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ GALLERY ══ -->
+<section id="gallery">
+  <div class="section-header reveal">
+    <div class="section-tag">Visual Story</div>
+    <h2>A Feast for the <em>Eyes</em></h2>
+    <div class="divider"></div>
+  </div>
+  <div class="gallery-grid reveal">
+    <!-- Feature: warm candlelit dining room -->
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85" alt="Ember & Oak dining room interior"/>
+    </div>
+    <!-- Chef plating a dish in the kitchen -->
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=85" alt="Chef plating food in open kitchen"/>
+    </div>
+    <!-- Wine pouring gracefully into glass -->
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600&q=85" alt="Sommelier pouring red wine"/>
+    </div>
+    <!-- Elegantly plated fine-dining dish -->
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=85" alt="Beautifully plated main course"/>
+    </div>
+    <!-- Wide: grilled meat on wood-fire -->
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=900&q=85" alt="Wood-fire grilled steak"/>
+    </div>
+    <!-- Artisan dessert plating -->
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&q=85" alt="Artisan chocolate dessert"/>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ABOUT ══ -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-img-wrap reveal">
+      <!-- Intimate table set for dinner, warm candlelight -->
+      <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=900&q=85" alt="Ember & Oak candlelit dining room"/>
+      <div class="about-badge"><div class="yr">15</div><div class="since">Years</div></div>
+    </div>
+    <div class="about-text reveal">
+      <div class="section-header">
+        <div class="section-tag">Our Story</div>
+        <h2>More Than a <em>Meal</em></h2>
+        <div class="divider"></div>
+      </div>
+      <p>Founded in 2009 by Chef Marco Alvares, Ember &amp; Oak began as a small wood-fired kitchen with a simple belief: extraordinary ingredients, prepared with respect and fire, need nothing else.</p>
+      <p>Today we remain committed to that founding philosophy — sourcing only from local farms we trust, crafting wine lists that surprise, and creating a dining room where every guest feels like family.</p>
+      <div class="about-stats">
+        <div><div class="stat-num">15+</div><div class="stat-label">Years Open</div></div>
+        <div><div class="stat-num">3</div><div class="stat-label">Michelin Stars</div></div>
+        <div><div class="stat-num">40k+</div><div class="stat-label">Happy Guests</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CHEFS ══ -->
+<section id="chefs">
+  <div class="section-header reveal">
+    <div class="section-tag">The Team</div>
+    <h2>Meet Our <em>Chefs</em></h2>
+    <div class="divider"></div>
+  </div>
+  <div class="chefs-grid">
+    <div class="chef-card reveal">
+      <div class="chef-img">
+        <!-- Professional male chef, confident in whites -->
+        <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=400&q=85" alt="Head Chef Marco Alvares"/>
+      </div>
+      <h3>Marco Alvares</h3>
+      <div class="chef-role">Head Chef & Founder</div>
+      <p>Trained in Lyon and Tokyo, Marco brings 25 years of open-fire mastery to every dish.</p>
+    </div>
+    <div class="chef-card reveal">
+      <div class="chef-img">
+        <!-- Pastry chef decorating a delicate dessert -->
+        <img src="https://images.unsplash.com/photo-1595273670150-bd0c3c392e46?w=400&q=85" alt="Pastry Chef Yuki Tanaka"/>
+      </div>
+      <h3>Yuki Tanaka</h3>
+      <div class="chef-role">Pastry Chef</div>
+      <p>A graduate of Le Cordon Bleu Paris, Yuki transforms humble ingredients into edible art.</p>
+    </div>
+    <div class="chef-card reveal">
+      <div class="chef-img">
+        <!-- Female chef smiling in kitchen -->
+        <img src="https://images.unsplash.com/photo-1581299894007-aaa50297cf16?w=400&q=85" alt="Sous Chef Sofia Reyes"/>
+      </div>
+      <h3>Sofia Reyes</h3>
+      <div class="chef-role">Sous Chef</div>
+      <p>Sofia's Mexican heritage enriches every dish with bold flavour and vivid storytelling.</p>
+    </div>
+    <div class="chef-card reveal">
+      <div class="chef-img">
+        <!-- Sommelier examining wine against light -->
+        <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&q=85" alt="Head Sommelier Ethan Brooks"/>
+      </div>
+      <h3>Ethan Brooks</h3>
+      <div class="chef-role">Head Sommelier</div>
+      <p>Master Sommelier with a nose for hidden gems — every pairing is a revelation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ RESERVATION ══ -->
+<section id="reservation">
+  <div class="section-header reveal">
+    <div class="section-tag">Dine With Us</div>
+    <h2>Reserve Your <em>Table</em></h2>
+    <div class="divider"></div>
+  </div>
+  <div class="reserve-wrap reveal">
+    <div class="form-grid">
+      <div class="form-group"><label>First Name</label><input type="text" placeholder="Marco"/></div>
+      <div class="form-group"><label>Last Name</label><input type="text" placeholder="Alvares"/></div>
+      <div class="form-group"><label>Email</label><input type="email" placeholder="hello@email.com"/></div>
+      <div class="form-group"><label>Phone</label><input type="tel" placeholder="+1 555 000 0000"/></div>
+      <div class="form-group"><label>Date</label><input type="date"/></div>
+      <div class="form-group"><label>Time</label>
+        <select><option>6:00 PM</option><option>6:30 PM</option><option>7:00 PM</option><option>7:30 PM</option><option>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option></select>
+      </div>
+      <div class="form-group"><label>Guests</label>
+        <select><option>1 Guest</option><option>2 Guests</option><option>3 Guests</option><option>4 Guests</option><option>5+ Guests</option></select>
+      </div>
+      <div class="form-group"><label>Occasion</label>
+        <select><option>None</option><option>Birthday</option><option>Anniversary</option><option>Business Dinner</option><option>Proposal</option></select>
+      </div>
+      <div class="form-group full"><label>Special Requests</label>
+        <textarea placeholder="Dietary restrictions, seating preferences, accessibility needs…"></textarea>
+      </div>
+    </div>
+    <button class="btn-gold form-submit">Confirm Reservation</button>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIALS ══ -->
+<section id="testimonials">
+  <div class="section-header reveal">
+    <div class="section-tag">Guest Words</div>
+    <h2>What People Are <em>Saying</em></h2>
+    <div class="divider"></div>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <div class="stars">★★★★★</div>
+      <p>"An extraordinary evening — every single course made us stop and simply marvel. The smoked burrata alone is worth the visit."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">
+          <!-- Real portrait: warm-toned woman smiling -->
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="Amelia Chen"/>
+        </div>
+        <div><div class="testi-name">Amelia Chen</div><div class="testi-loc">New York, NY</div></div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="stars">★★★★★</div>
+      <p>"The Wagyu ribeye changed my life. Chef Marco's team has created something truly special — intimate, soulful, and unforgettable."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">
+          <!-- Real portrait: man with friendly smile -->
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80" alt="James Whitfield"/>
+        </div>
+        <div><div class="testi-name">James Whitfield</div><div class="testi-loc">London, UK</div></div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="stars">★★★★★</div>
+      <p>"The wine pairing curated by Ethan was a masterclass. Every glass told a story that perfectly complemented each dish."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">
+          <!-- Real portrait: confident woman -->
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" alt="Sofia Marín"/>
+        </div>
+        <div><div class="testi-name">Sofia Marín</div><div class="testi-loc">Madrid, Spain</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo">Ember <span style="color:var(--cream)">&amp; Oak</span></a>
+      <p>A sanctuary of fire, flavour, and fine hospitality. Open Tuesday through Sunday, evenings only.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navigate</h4>
+      <ul>
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#about">Our Story</a></li>
+        <li><a href="#chefs">The Team</a></li>
+        <li><a href="#reservation">Reservations</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Hours</h4>
+      <ul>
+        <li><a href="#">Tue – Thu: 6 – 10 PM</a></li>
+        <li><a href="#">Fri – Sat: 6 – 11 PM</a></li>
+        <li><a href="#">Sunday: 5 – 9 PM</a></li>
+        <li><a href="#">Monday: Closed</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="#">12 Ember Lane, NYC</a></li>
+        <li><a href="#">+1 (212) 555-0180</a></li>
+        <li><a href="#">hello@emberandoak.com</a></li>
+        <li><a href="#">@ember_and_oak</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Ember &amp; Oak. All rights reserved.</span>
+    <span>Privacy Policy · Terms of Service</span>
+  </div>
+</footer>
+
+<script>
+  // HERO SLIDER
+  const slides=document.querySelectorAll('.slide'),dots=document.querySelectorAll('.dot');
+  let cur=0,timer;
+  function goTo(n){slides[cur].classList.remove('active');dots[cur].classList.remove('active');cur=(n+slides.length)%slides.length;slides[cur].classList.add('active');dots[cur].classList.add('active');}
+  function autoPlay(){timer=setInterval(()=>goTo(cur+1),5000);}
+  dots.forEach(d=>d.addEventListener('click',()=>{clearInterval(timer);goTo(+d.dataset.i);autoPlay();}));
+  autoPlay();
+
+  // MENU TABS
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.menu-grid').forEach(g=>g.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // SCROLL REVEAL
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
