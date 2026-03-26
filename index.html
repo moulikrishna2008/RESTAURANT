@@ -508,7 +508,9 @@
         <textarea placeholder="Dietary restrictions, seating preferences, accessibility needs…"></textarea>
       </div>
     </div>
-<button class="btn-gold form-submit" onclick="bookNow()">Confirm Reservation</button>
+<button onclick="sendData()" class="btn-gold form-submit">
+  Confirm Reservation
+</button>
   </div>
 </section>
 
@@ -624,26 +626,23 @@
 
   const inputs = document.querySelectorAll('#reservation input, #reservation select');
 
-  const data = {
-    name: inputs[0].value,
-    email: inputs[2].value,
-    phone: inputs[3].value,
-    date: inputs[4].value,
-    time: inputs[5].value
-  };
+  const params = new URLSearchParams();
 
-  fetch('http://localhost:5000/book', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(res => res.text())
-  .then(msg => alert(msg));
-}
-  function bookNow() {
-  alert("Booking Successful 🎉");
+  params.append("name", inputs[0].value);
+  params.append("lastname", inputs[1].value);
+  params.append("email", inputs[2].value);
+  params.append("phone", inputs[3].value);
+  params.append("date", inputs[4].value);
+  params.append("time", inputs[5].value);
+  params.append("guests", inputs[6].value);
+  params.append("occasion", inputs[7].value);
+
+  fetch("https://script.google.com/macros/s/AKfycbxTHfQWN8_vydd7eCu97AcfA4OiLCbIWpLFgluo_mUKuJq-6kLuX1gIXrqS-klivZ9Y4w/exec", {
+    method: "POST",
+    body: params
+  });
+
+  alert("Booking Confirmed 🎉");
 }
 </script>
 </body>
